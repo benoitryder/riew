@@ -147,8 +147,13 @@ impl App {
 
         self.files = files;
 
-        //TODO load the first file from parameters
-        self.change_file(Some(0));
+        let start_index = paths
+            .first()
+            .filter(|p| p.is_file())
+            .and_then(|p| self.files.iter().position(|f| p == f))
+            .unwrap_or(0);
+        self.change_file(Some(start_index));
+
         self.zoom_adjust();
 
         Ok(())
