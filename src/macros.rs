@@ -18,8 +18,3 @@ macro_rules! size_as {
     }}
 }
 
-/// Clamp a value
-macro_rules! clamp {
-    ($e:expr, $min:expr, $max:expr) => { ($e).max($min).min($max) }
-}
-

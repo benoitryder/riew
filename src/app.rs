@@ -262,12 +262,12 @@ impl App {
         let px = if img_sx <= dst_sx {
             img_sx / 2.
         } else {
-            clamp!(px, dst_sx / 2., img_sx - dst_sx / 2.)
+            px.clamp(dst_sx / 2., img_sx - dst_sx / 2.)
         };
         let py = if img_sy <= dst_sy {
             img_sy / 2.
         } else {
-            clamp!(py, dst_sy / 2., img_sy - dst_sy / 2.)
+            py.clamp(dst_sy / 2., img_sy - dst_sy / 2.)
         };
 
         image.pos = (px, py);
@@ -303,7 +303,7 @@ impl App {
         let image = try_some!(self.image.as_mut());
 
         // clamp zoom to sensible values 
-        let zoom = clamp!(zoom, 0.001, 1000.);
+        let zoom = zoom.clamp(0.001, 1000.);
 
         // Shift the image position if not zooming on it.
         // Translate the position by how much the zoom center moved.
