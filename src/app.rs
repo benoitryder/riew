@@ -1,6 +1,6 @@
 use std::fs;
 use std::cell::Cell;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use sdl2::mouse::{MouseButton, MouseState, MouseWheelDirection};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{Keycode, Mod, Scancode};
@@ -13,6 +13,9 @@ use lazy_static::lazy_static;
 /// The main application
 pub struct App {
     display: Display,
+    /// Requested paths to display
+    paths: Vec<PathBuf>,
+    /// Files to display (image paths only)
     files: Vec<PathBuf>,
     /// Index of current file in `files`
     file_index: Option<usize>,
@@ -62,19 +65,21 @@ impl App {
     const OUTLINE_COLOR: Color = Color { r: 0, g: 0, b: 0, a: 255 };
 
     /// Create the application, initialize files from paths
-    pub fn init(paths: &Vec<&Path>) -> Result<Self, String> {
+    pub fn init(paths: Vec<PathBuf>) -> Result<Self, String> {
         let mut display = Display::init(Self::DEFAULT_WINDOW_SIZE)?;
         display.bg_color = Self::DEFAULT_BG_COLOR;
 
         let mut app = Self {
             display: display,
+            paths: paths,
             files: Vec::new(),
             file_index: None,
             image: None,
             zoom: 1.,
             dirty: Cell::new(true),
         };
-        app.set_filelist(paths)?;
+        let first_path = app.paths.first().cloned();
+        app.update_filelist(first_path)?;
 
         Ok(app)
     }
@@ -122,19 +127,23 @@ impl App {
         }
     }
 
-    /// Update the list of files
-    pub fn set_filelist(&mut self, paths: &Vec<&Path>) -> Result<(), String> {
+    /// Update the list of files from requested paths
+    ///
+    /// If `next_file` is provided, change current file to this path.
+    /// If not provided or not available, switch to the first file of the list.
+    ///
+    /// Missing paths are ignored.
+    pub fn update_filelist(&mut self, next_file: Option<PathBuf>) -> Result<(), String> {
         let mut files = Vec::<PathBuf>::new();
-        for path in paths {
-            if path.is_dir() {
+        for path in &self.paths {
+            if path.as_os_str().len() == 0 || path.is_dir() {
                 for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
                     let entry_path = entry.map_err(|e| e.to_string())?.path();
-                    if path.is_dir() && is_image_path(&entry_path) {
+                    if is_image_path(&entry_path) {
                         files.push(entry_path);
                     }
                 }
-            } else {
-                assert!(path.is_file());
+            } else if path.is_file() {
                 let owned_path = path.to_path_buf();
                 if is_image_path(&owned_path) {
                     files.push(owned_path);
@@ -147,10 +156,9 @@ impl App {
 
         self.files = files;
 
-        let start_index = paths
-            .first()
+        let start_index = next_file
             .filter(|p| p.is_file())
-            .and_then(|p| self.files.iter().position(|f| p == f))
+            .and_then(|p| self.files.iter().position(|f| p.as_path() == f))
             .unwrap_or(0);
         self.change_file(Some(start_index));
 
@@ -471,7 +479,11 @@ impl App {
                 self.move_rel((-Self::move_step_from_mod(keymod), 0.));
             }
 
-            //TODO F5: reload list
+            // other actions
+            Keycode::F5 => {
+                let current_file = self.image.as_ref().map(|img| PathBuf::from(&img.image.path));
+                let _ = self.update_filelist(current_file);
+            }
 
             _ => {},
         }

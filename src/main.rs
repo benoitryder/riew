@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use std::path::Path;
+use std::path::PathBuf;
 use clap::{App, Arg, ArgGroup};
 
 
@@ -21,19 +21,19 @@ fn main() -> Result<(), String> {
 
     let paths: Vec<_> =
         if let Some(file) = appm.value_of("directory") {
-            let path = Path::new(file);
+            let path = PathBuf::from(file);
             if let Some(parent) = path.parent() {
+                let parent = parent.to_owned();
                 vec![path, parent]
             } else {
                 vec![path]
             }
         } else if let Some(files) = appm.values_of("files") {
-            files.into_iter().map(|f| Path::new(f)).collect()
+            files.into_iter().map(|f| PathBuf::from(f)).collect()
         } else {
-            vec![Path::new(".")]
+            vec![PathBuf::from("")]
         };
-
-    riew::App::init(&paths)?.run()?;
+    riew::App::init(paths)?.run()?;
 
     Ok(())
 }
