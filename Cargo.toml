@@ -1,0 +1,16 @@
+[package]
+name = "riew"
+version = "0.1.0"
+authors = ["Benoît Ryder <benoit@ryder.fr>"]
+edition = "2018"
+
+[dependencies]
+clap = "2"
+lazy_static = "1.4"
+owning_ref = "0.4"
+
+[dependencies.sdl2]
+version = "0.34"
+default-features = false
+features = ["image", "ttf"]
+
