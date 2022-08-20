@@ -1,6 +1,6 @@
 use std::fs;
 use std::cell::Cell;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use sdl2::mouse::{MouseButton, MouseState, MouseWheelDirection};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{Keycode, Mod, Scancode};
@@ -70,8 +70,8 @@ impl App {
         display.bg_color = Self::DEFAULT_BG_COLOR;
 
         let mut app = Self {
-            display: display,
-            paths: paths,
+            display,
+            paths,
             files: Vec::new(),
             file_index: None,
             image: None,
@@ -136,7 +136,7 @@ impl App {
     pub fn update_filelist(&mut self, next_file: Option<PathBuf>) -> Result<(), String> {
         let mut files = Vec::<PathBuf>::new();
         for path in &self.paths {
-            if path.as_os_str().len() == 0 || path.is_dir() {
+            if path.as_os_str().is_empty() || path.is_dir() {
                 for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
                     let entry_path = entry.map_err(|e| e.to_string())?.path();
                     if is_image_path(&entry_path) {
@@ -294,14 +294,14 @@ impl App {
 
     /// Zoom in, by one step
     pub fn zoom_in(&mut self, center: Option<(f32, f32)>) {
-        if let Some(zoom) = ZOOM_STEPS.iter().filter(|z| **z > self.zoom).next() {
+        if let Some(zoom) = ZOOM_STEPS.iter().find(|z| **z > self.zoom) {
             self.set_zoom(*zoom, center);
         }
     }
 
     /// Zoom out, by one step
     pub fn zoom_out(&mut self, center: Option<(f32, f32)>) {
-        if let Some(zoom) = ZOOM_STEPS.iter().rev().filter(|z| **z < self.zoom).next() {
+        if let Some(zoom) = ZOOM_STEPS.iter().rev().find(|z| **z < self.zoom) {
             self.set_zoom(*zoom, center);
         }
     }
@@ -367,15 +367,19 @@ impl App {
                 format!("[no file]")
             } else if let Some(image) = self.image.as_ref() {
                 self.display.draw_image(&image.image, image.pos, self.zoom, image.angle);
-                format!("{}  ( {} × {} )  [ {} / {} ]  {} %",
-                             image.image.path,
-                             image.image.width,
-                             image.image.height,
-                             self.file_index.unwrap() + 1, self.files.len(),
-                             (self.zoom * 100.) as u32)
+                format!(
+                    "{}  ( {} × {} )  [ {} / {} ]  {} %",
+                    image.image.path,
+                    image.image.width,
+                    image.image.height,
+                    self.file_index.unwrap() + 1, self.files.len(),
+                    (self.zoom * 100.) as u32,
+                )
             } else {
-                format!("[invalid file]  [ {} / {} ]",
-                             self.file_index.unwrap() + 1, self.files.len())
+                format!(
+                    "[invalid file]  [ {} / {} ]",
+                    self.file_index.unwrap() + 1, self.files.len(),
+                )
             };
         self.display.draw_text_outline(Font::Normal, file_text.as_str(), Self::FILE_INFO_COLOR, Self::OUTLINE_COLOR, Self::FILE_INFO_POS);
 
@@ -574,7 +578,7 @@ impl App {
     fn filelist_step_from_mod(keymod: Mod) -> i32 {
         match keymod {
             Mod::LSHIFTMOD | Mod::RSHIFTMOD => 5,
-            Mod::NOMOD | _ => 1,
+            _ => 1,
         }
     }
 
@@ -583,7 +587,7 @@ impl App {
         match keymod {
             Mod::LALTMOD | Mod::RALTMOD => 10.,
             Mod::LSHIFTMOD | Mod::RSHIFTMOD => 500.,
-            Mod::NOMOD | _ => 50.,
+            _ => 50.,
         }
     }
 
@@ -604,8 +608,8 @@ impl App {
 
 
 /// Check if a path is an image path (based on extension)
-fn is_image_path(path: &PathBuf) -> bool {
-    const EXTENSIONS: [&'static str; 10] = [
+fn is_image_path(path: &Path) -> bool {
+    const EXTENSIONS: [&str; 10] = [
         "tga", "bmp", "pnm", "gif", "jpg", "jpeg", "tif", "tiff", "png", "webp",
     ];
 
