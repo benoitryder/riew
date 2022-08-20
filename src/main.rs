@@ -1,3 +1,6 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg_attr(debug_assertions, windows_subsystem = "console")]
+
 use std::path::PathBuf;
 use clap::{App, Arg, ArgGroup};
 
