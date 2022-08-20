@@ -6,8 +6,8 @@ use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{Keycode, Mod, Scancode};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use once_cell::sync::Lazy;
 use crate::display::{Display, Image, Font};
-use lazy_static::lazy_static;
 
 
 /// The main application
@@ -41,9 +41,9 @@ struct CurrentImage {
     pixel_info: Option<((i32, i32), Color)>,
 }
 
-lazy_static! {
-    /// Zoom steps used when zooming in/out
-    static ref ZOOM_STEPS: Vec<f32> = (0..0)
+/// Zoom steps used when zooming in/out
+static ZOOM_STEPS: Lazy<Vec<f32>> = Lazy::new(|| {
+    (0..0)
         .chain((  15..  50).step_by(   7))
         .chain((  50.. 100).step_by(  10))
         .chain(( 100.. 200).step_by(  25))
@@ -51,8 +51,8 @@ lazy_static! {
         .chain(( 600..1000).step_by( 200))
         .chain((1000..2000).step_by( 500))
         .chain((2000..5000).step_by(1000))
-        .map(|v| v as f32 / 100.).collect();
-}
+        .map(|v| v as f32 / 100.).collect()
+});
 
 
 impl App {
