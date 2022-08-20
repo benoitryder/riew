@@ -1,5 +1,3 @@
-extern crate sdl2;
-
 use std::path::PathBuf;
 use clap::{App, Arg, ArgGroup};
 
@@ -8,7 +6,7 @@ fn main() -> Result<(), String> {
     let appm = App::new("riew")
         .about("Rust image viewer")
         .arg(Arg::with_name("directory")
-            .short("d")
+            .short('d')
             .value_name("FILE")
             .help("browse directory of provided file"))
         .arg(Arg::with_name("files")
@@ -29,7 +27,7 @@ fn main() -> Result<(), String> {
                 vec![path]
             }
         } else if let Some(files) = appm.values_of("files") {
-            files.into_iter().map(|f| PathBuf::from(f)).collect()
+            files.into_iter().map(PathBuf::from).collect()
         } else {
             vec![PathBuf::from("")]
         };

@@ -63,7 +63,7 @@ impl FontManager {
         })
     }
 
-    fn load_font<'a>(ttf_context: Rc<Sdl2TtfContext>, bytes: &'static [u8], size: u16, outline: u16) -> Result<OwnedFont, String> {
+    fn load_font(ttf_context: Rc<Sdl2TtfContext>, bytes: &'static [u8], size: u16, outline: u16) -> Result<OwnedFont, String> {
         let mut font = OwningHandle::try_new(ttf_context, |o| -> Result<_, String> {
             let rwops = RWops::from_bytes(bytes)?;
             let font = unsafe { (*o).load_font_from_rwops(rwops, size)? };
@@ -161,7 +161,7 @@ impl Display {
     /// Draw text
     pub fn draw_text(&mut self, font: Font, text: &str, color: Color, pos: (i32, i32)) -> (i32, i32) {
         let (font, _) = self.fonts.get_font(font);
-        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, &font, text, color, pos)
+        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, font, text, color, pos)
     }
 
     /// Draw text with outline
@@ -169,8 +169,8 @@ impl Display {
         let (font, font_outline) = self.fonts.get_font(font);
         let outline = font_outline.get_outline_width() as i32;
 
-        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, &font_outline, text, color_outline, (pos.0 - outline, pos.1 - outline));
-        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, &font, text, color, pos)
+        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, font_outline, text, color_outline, (pos.0 - outline, pos.1 - outline));
+        Self::draw_text_internal(&mut self.canvas, self.texture_creator.clone(), &mut self.rendered_textures, font, text, color, pos)
     }
 
     /// Render text and draw it, return the end position

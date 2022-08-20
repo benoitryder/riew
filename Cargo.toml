@@ -2,10 +2,10 @@
 name = "riew"
 version = "0.1.0"
 authors = ["Benoît Ryder <benoit@ryder.fr>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-clap = "2"
+clap = "3"
 lazy_static = "1.4"
 owning_ref = "0.4"
 
