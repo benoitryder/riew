@@ -454,11 +454,11 @@ impl App {
             Keycode::Space if nomod => self.scroll(1.),
             Keycode::Backspace if nomod => self.scroll(-1.),
 
-            Keycode::PageUp => {
+            Keycode::PageDown => {
                 self.change_file_rel(Self::filelist_step_from_mod(keymod));
                 self.zoom_adjust();
             },
-            Keycode::PageDown => {
+            Keycode::PageUp => {
                 self.change_file_rel(-Self::filelist_step_from_mod(keymod));
                 self.zoom_adjust();
             },
@@ -535,7 +535,7 @@ impl App {
                     let image = self.image.as_mut().unwrap();
                     image.drag = None;  // end drag
                 } else {
-                    self.change_file_rel(-1);
+                    self.change_file_rel(1);
                     self.zoom_adjust();
                 }
             },
@@ -543,7 +543,7 @@ impl App {
                 if dragging {
                     // ignore click
                 } else {
-                    self.change_file_rel(1);
+                    self.change_file_rel(-1);
                     self.zoom_adjust();
                 }
             },
