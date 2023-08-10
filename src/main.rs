@@ -2,26 +2,24 @@
 #![cfg_attr(debug_assertions, windows_subsystem = "console")]
 
 use std::path::PathBuf;
-use clap::{App, Arg, ArgGroup};
+use clap::Parser;
 
+#[derive(Parser)]
+#[command(about = "Rust image viewer")]
+struct Cli {
+    /// browse directory of provided file
+    #[arg(short, long, value_name = "FILE", group = "input")]
+    directory: Option<PathBuf>,
+    /// browse given files
+    #[arg(value_name = "FILE", group = "input")]
+    files: Option<Vec<PathBuf>>,
+}
 
 fn main() -> Result<(), String> {
-    let appm = App::new("riew")
-        .about("Rust image viewer")
-        .arg(Arg::with_name("directory")
-            .short('d')
-            .value_name("FILE")
-            .help("browse directory of provided file"))
-        .arg(Arg::with_name("files")
-            .multiple(true)
-            .value_name("FILE")
-            .help("browse given files"))
-        .group(ArgGroup::with_name("input")
-            .args(&["directory", "files"]))
-        .get_matches();
+    let cli = Cli::parse();
 
     let paths: Vec<_> =
-        if let Some(file) = appm.value_of("directory") {
+        if let Some(file) = cli.directory {
             let path = PathBuf::from(file);
             if let Some(parent) = path.parent() {
                 let parent = parent.to_owned();
@@ -29,7 +27,7 @@ fn main() -> Result<(), String> {
             } else {
                 vec![path]
             }
-        } else if let Some(files) = appm.values_of("files") {
+        } else if let Some(files) = cli.files {
             files.into_iter().map(PathBuf::from).collect()
         } else {
             vec![PathBuf::from("")]

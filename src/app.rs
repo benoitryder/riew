@@ -364,7 +364,7 @@ impl App {
         //TODO don't redraw the text each time, keep it in a texture
         let file_text =
             if self.file_index.is_none() {
-                format!("[no file]")
+                "[no file]".to_string()
             } else if let Some(image) = self.image.as_ref() {
                 self.display.draw_image(&image.image, image.pos, self.zoom, image.angle);
                 format!(
