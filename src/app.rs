@@ -6,7 +6,7 @@ use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{Keycode, Mod, Scancode};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use crate::display::{Display, Image, Font};
 
 
@@ -42,7 +42,7 @@ struct CurrentImage {
 }
 
 /// Zoom steps used when zooming in/out
-static ZOOM_STEPS: Lazy<Vec<f32>> = Lazy::new(|| {
+static ZOOM_STEPS: LazyLock<Vec<f32>> = LazyLock::new(|| {
     (0..0)
         .chain((  15..  50).step_by(   7))
         .chain((  50.. 100).step_by(  10))
