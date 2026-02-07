@@ -144,7 +144,7 @@ impl App {
                     }
                 }
             } else if path.is_file() {
-                let owned_path = path.to_path_buf();
+                let owned_path = path.clone();
                 if is_image_path(&owned_path) {
                     files.push(owned_path);
                 }
@@ -196,7 +196,7 @@ impl App {
                     })
                 }
                 Err(e) => {
-                    eprintln!("failed to load image: {}", e);
+                    eprintln!("failed to load image: {e}");
                     None
                 }
             }
@@ -252,7 +252,7 @@ impl App {
             self.move_to((0., 0.));
         } else if dy < 0. && pos_y + dy / 2. - MARGIN < 0. {
             self.change_file_rel(-1);
-            self.move_to((0., std::f32::MAX));
+            self.move_to((0., f32::MAX));
         } else {
             self.move_rel((0., dy));
         }
@@ -363,23 +363,25 @@ impl App {
 
         //TODO don't redraw the text each time, keep it in a texture
         let file_text =
-            if self.file_index.is_none() {
-                "[no file]".to_string()
-            } else if let Some(image) = self.image.as_ref() {
-                self.display.draw_image(&image.image, image.pos, self.zoom, image.angle);
-                format!(
-                    "{}  ( {} × {} )  [ {} / {} ]  {} %",
-                    image.image.path,
-                    image.image.width,
-                    image.image.height,
-                    self.file_index.unwrap() + 1, self.files.len(),
-                    (self.zoom * 100.) as u32,
-                )
+            if let Some(file_index) = self.file_index {
+                if let Some(image) = self.image.as_ref() {
+                    self.display.draw_image(&image.image, image.pos, self.zoom, image.angle);
+                    format!(
+                        "{}  ( {} × {} )  [ {} / {} ]  {} %",
+                        image.image.path,
+                        image.image.width,
+                        image.image.height,
+                        file_index + 1, self.files.len(),
+                        (self.zoom * 100.) as u32,
+                    )
+                } else {
+                    format!(
+                        "[invalid file]  [ {} / {} ]",
+                        file_index + 1, self.files.len(),
+                    )
+                }
             } else {
-                format!(
-                    "[invalid file]  [ {} / {} ]",
-                    self.file_index.unwrap() + 1, self.files.len(),
-                )
+                "[no file]".to_string()
             };
         self.display.draw_text_outline(Font::Normal, file_text.as_str(), Self::FILE_INFO_COLOR, Self::OUTLINE_COLOR, Self::FILE_INFO_POS);
 
@@ -419,7 +421,7 @@ impl App {
     pub fn quit(&self) {
         let event_subsystem = self.display.sdl_context.event().unwrap();
         // flush all events to be sure to quit right away
-        event_subsystem.flush_events(0, std::u32::MAX);
+        event_subsystem.flush_events(0, u32::MAX);
         event_subsystem.push_event(Event::Quit{ timestamp: 0 }).unwrap();
     }
 
@@ -575,7 +577,7 @@ impl App {
     }
 
     /// Get filelist step from a keyboard modifier
-    fn filelist_step_from_mod(keymod: Mod) -> i32 {
+    const fn filelist_step_from_mod(keymod: Mod) -> i32 {
         match keymod {
             Mod::LSHIFTMOD | Mod::RSHIFTMOD => 5,
             _ => 1,
@@ -583,7 +585,7 @@ impl App {
     }
 
     /// Get move step from a keyboard modifier
-    fn move_step_from_mod(keymod: Mod) -> f32 {
+    const fn move_step_from_mod(keymod: Mod) -> f32 {
         match keymod {
             Mod::LALTMOD | Mod::RALTMOD => 10.,
             Mod::LSHIFTMOD | Mod::RSHIFTMOD => 500.,
@@ -613,10 +615,8 @@ fn is_image_path(path: &Path) -> bool {
         "tga", "bmp", "pnm", "gif", "jpg", "jpeg", "tif", "tiff", "png", "webp",
     ];
 
-    if let Some(os_ext) = path.extension() {
-        if let Some(ext) = os_ext.to_str() {
-            return EXTENSIONS.contains(&ext.to_lowercase().as_str());
-        }
+    if let Some(os_ext) = path.extension() && let Some(ext) = os_ext.to_str() {
+        return EXTENSIONS.contains(&ext.to_lowercase().as_str());
     }
     false
 }

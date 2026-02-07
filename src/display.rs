@@ -25,20 +25,21 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn size(&self) -> (u32, u32) {
+    pub const fn size(&self) -> (u32, u32) {
         (self.width, self.height)
     }
 }
 
 /// Manage fonts (each with an "outline" version)
 ///
-/// The fonts are kept with their TTF context adn RWops to avoid lifetime issues.
+/// The fonts are kept with their TTF context and `RWops` to avoid lifetime issues.
 struct FontManager {
     normal: (OwnedFont, OwnedFont),
     mono: (OwnedFont, OwnedFont),
 }
 
 /// List of available fonts, to be used by the display user
+#[derive(Clone, Copy)]
 pub enum Font {
     Normal,
     Mono,
@@ -47,7 +48,7 @@ pub enum Font {
 
 impl FontManager {
     pub fn init() -> Result<Self, String> {
-        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
+        let ttf_context = sdl2::ttf::init()?;
         let ttf_context = Rc::new(ttf_context);
 
         macro_rules! load_font {
@@ -75,7 +76,7 @@ impl FontManager {
         Ok(font)
     }
 
-    pub fn get_font(&self, font: Font) -> &(OwnedFont, OwnedFont) {
+    pub const fn get_font(&self, font: Font) -> &(OwnedFont, OwnedFont) {
         match font {
             Font::Normal => &self.normal,
             Font::Mono => &self.mono,

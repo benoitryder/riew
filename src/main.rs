@@ -20,15 +20,14 @@ fn main() -> Result<(), String> {
 
     let paths: Vec<_> =
         if let Some(file) = cli.directory {
-            let path = PathBuf::from(file);
-            if let Some(parent) = path.parent() {
+            if let Some(parent) = file.parent() {
                 let parent = parent.to_owned();
-                vec![path, parent]
+                vec![file, parent]
             } else {
-                vec![path]
+                vec![file]
             }
         } else if let Some(files) = cli.files {
-            files.into_iter().map(PathBuf::from).collect()
+            files.into_iter().collect()
         } else {
             vec![PathBuf::from("")]
         };
