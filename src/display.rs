@@ -4,7 +4,7 @@ use sdl2::Sdl;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator, WindowCanvas};
-use sdl2::image::LoadTexture;
+use sdl2::image::{LoadTexture, ImageRWops};
 use sdl2::video::{WindowContext, FullscreenType};
 use sdl2::ttf::{Sdl2TtfContext, Font as TtfFont};
 use sdl2::rwops::RWops;
@@ -105,11 +105,14 @@ impl Display {
     pub fn init(size: (u32, u32)) -> Result<Self, String> {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
-        let window = video_subsystem.window("riew", size.0, size.1)
+        let mut window = video_subsystem.window("riew", size.0, size.1)
             .position_centered()
             .resizable()
             .build()
             .map_err(|e| e.to_string())?;
+        if let Ok(icon) = load_app_icon() {
+            window.set_icon(icon);
+        }
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
         let texture_creator = Rc::new(canvas.texture_creator());
         let fonts = FontManager::init()?;
@@ -255,5 +258,13 @@ impl Display {
         let pixels = self.canvas.read_pixels(None, PixelFormatEnum::RGBA32)?;
         Ok(Color::RGB(pixels[0], pixels[1], pixels[2]))
     }
+}
+
+
+/// Load the application icon
+fn load_app_icon() -> Result<sdl2::surface::Surface<'static>, String> {
+    const ICON_DATA: &'static [u8] = include_bytes!("../res/icon.png");
+
+    RWops::from_bytes(ICON_DATA)?.load_png()
 }
 
