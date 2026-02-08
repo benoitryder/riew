@@ -96,7 +96,7 @@ impl App {
                 Event::Quit{..} => { return Ok(()) },
                 Event::Window{ win_event, .. } => {
                     match win_event {
-                        WindowEvent::Resized(..) | WindowEvent::SizeChanged(..) => {
+                        WindowEvent::Resized(..) | WindowEvent::SizeChanged(..) | WindowEvent::Exposed => {
                             self.dirty.set(true);
                         },
                         _ => {},
